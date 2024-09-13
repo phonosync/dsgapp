@@ -3,13 +3,13 @@ dependencies:
   - python=3.10
   - pip
   - pip:
-      - streamlit
+      - numpy==1.26.4
       - openpyxl
       - pandas
-      - matplotlib
       - pillow
       - python-Levenshtein
-      - seaborn
       - scikit-learn
       - scikit-surprise
       - scipy
+      - seaborn
+      - streamlit
