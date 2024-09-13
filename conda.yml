@@ -1,0 +1,15 @@
+name: dsgapp
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - streamlit
+      - openpyxl
+      - pandas
+      - matplotlib
+      - pillow
+      - python-Levenshtein
+      - seaborn
+      - scikit-learn
+      - scikit-surprise
+      - scipy
