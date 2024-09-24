@@ -18,3 +18,5 @@ st.set_page_config(
 
 st.title("DSG-Apps")
 st.write("Eine Sammlung von Apps zur Illustration einiger zentralen Operationen in einem Data Science-Projekt. Über die Seitenleiste sind die verschiedenen Funktionalitäten zugänglich.")
+
+
