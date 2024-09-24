@@ -11,7 +11,7 @@ model = None
 
 if not model:
     # select metric
-    metric = st.selectbox('Wählen Sie die zu berechnende Distanz-Metrik',
+    metric = st.selectbox('Wähle die zu berechnende Distanz-Metrik',
                                 ['cityblock', 'cosine', 'euclidean', 'l1',
                                  'l2', 'manhattan']
                          )
@@ -21,7 +21,7 @@ if not model:
                     die Kosinus-Distanz zwischen zwei Vektoren 
                 $=1-\\frac{\mathbf{u}\cdot \mathbf{v}}{||\mathbf{u}|| \cdot ||\mathbf{v}||}$''',icon="⚠️")
 
-    st.write('''Laden Sie eine csv-Datei mit den Daten hoch. Ein Sample pro 
+    st.write('''Lade eine csv-Datei mit den Daten hoch. Ein Sample pro 
              Zeile. Die erste Reihe wird als Kopfzeile Variablen-Namen interpretiert.''')
     df_sample_inp = pd.DataFrame({'Variable 1': [0.0, 4.1, 2.3], 'Variable 2': [0, 1, 1], 
                                   'Variable 3': [5, 3, 9]})
