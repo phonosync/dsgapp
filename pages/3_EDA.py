@@ -21,10 +21,10 @@ def detect_variable_type(df):
     return variable_types
 
 
-st.title("Exploratory Data Analysis")
+st.title("Explorative Datenanalyse")
 
 # File uploader
-uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+uploaded_file = st.file_uploader("Wähle eine csv-Datei", type="csv")
 
 if uploaded_file is not None:
     # Read the CSV file
