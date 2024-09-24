@@ -1,0 +1,5 @@
+tesseract-ocr
+tesseract-ocr-por
+tesseract-ocr-deu
+tesseract-ocr-fra
+tesseract-ocr-ita

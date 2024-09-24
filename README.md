@@ -70,7 +70,17 @@ which can then be accessed:
 os.environ['SAMPLE_VAR']
 ```
 
+## Tesseract for Text Extraction
+On Mac:
+```sh
+brew install tesseract-lang
+```
+Installs all available languages
+
+
 ## Specifying dependencies for Deployment on Streamlit Cloud
 Conda is still not very well supported on streamlit cloud. Therefore all dependencies for deployment are specified for `pipenv` in the `requirements.txt` file. For now I just found it the easiest for me to continue working with conda locally as the environment managager but rely on the pip-package manager. Before deployment I manually update `requirements.txt`
 
 Upon deployment on Streamlit Cloud the Python version consistent with the local conda environment is specified manually (modal -> Advanced Settings): Python v. 3.10
+
+tesseract in file `packages.txt` for ubuntu packages
