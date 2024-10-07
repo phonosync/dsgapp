@@ -4,10 +4,12 @@ import numpy as np
 from scipy.stats import pearsonr, spearmanr
 import seaborn as sns
 import matplotlib.pyplot as plt
+import utils
 
 @st.cache_data
 def load_data(uploaded_file):
-    return pd.read_csv(uploaded_file)
+    return utils.inp_file_2_csv(inp_file=uploaded_file, index_column=False,
+                                  header_row=True)
 
 def detect_variable_type(df):
     variable_types = {}
@@ -19,7 +21,6 @@ def detect_variable_type(df):
         else:
             variable_types[column] = "Categorical"
     return variable_types
-
 
 st.title("Explorative Datenanalyse")
 
