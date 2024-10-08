@@ -23,6 +23,7 @@ def detect_variable_type(df):
     return variable_types
 
 st.title("Explorative Datenanalyse")
+st.write("Für tabellarische Daten aus einer csv-Datei")
 
 # File uploader
 uploaded_file = st.file_uploader("Wähle eine csv-Datei", type="csv")
