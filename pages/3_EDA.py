@@ -103,10 +103,10 @@ if uploaded_file is not None:
             negative_values = (df[selected_column] < 0).sum()
 
             total_values = len(df[selected_column])
-            perc_distinct_values = (distinct_values / total_values) * 100
-            perc_missing_values = (missing_values / total_values) * 100
-            perc_zeros = (zeros / total_values) * 100
-            perc_negative_values = (negative_values / total_values) * 100
+            perc_distinct_values = np.round((distinct_values / total_values) * 100, 2)
+            perc_missing_values = np.round((missing_values / total_values) * 100, 2)
+            perc_zeros = np.round((zeros / total_values) * 100, 2)
+            perc_negative_values = np.round((negative_values / total_values) * 100, 2)
 
             # Create DataFrame for additional metrics
             df3 = pd.DataFrame({
@@ -130,12 +130,12 @@ if uploaded_file is not None:
             range_val = max_val - min_val
             iqr = q3 - q1
 
-            mean = df[selected_column].mean()
-            std_dev = df[selected_column].std()
-            variance = df[selected_column].var()
-            cv = std_dev / mean
-            kurtosis = df[selected_column].kurtosis()
-            skewness = df[selected_column].skew()
+            mean = np.round(df[selected_column].mean(), 2)
+            std_dev = np.round(df[selected_column].std(), 2)
+            variance = np.round(df[selected_column].var(), 2)
+            cv = np.round(std_dev / mean, 2)
+            kurtosis = np.round(df[selected_column].kurtosis(), 2)
+            skewness = np.round(df[selected_column].skew(), 2)
 
             # Create DataFrame 1
             df1 = pd.DataFrame({
@@ -237,54 +237,81 @@ if uploaded_file is not None:
             
             st.dataframe(frequency_df, hide_index=True)
 
-            # Input field for threshold value
-            threshold = st.number_input("Alle Klassen, deren relative Häufigkeit dem Schwellenwert (%) entspricht oder darunter liegt, werden unter „Sonstige“ zusammengefasst:", min_value=0, max_value=100, value=5)
-
-            filtered_df = frequency_df[frequency_df["Relative Häufigkeit (%)"] > threshold]
-            other_df = frequency_df[frequency_df["Relative Häufigkeit (%)"] <= threshold]
+            # Input field for the number of most frequent classes to display
+            num_classes = st.number_input("Anzahl der häufigsten Klassen, die explizit dargestellt werden sollen:", min_value=1, max_value=len(frequency_df), value=5)
             
-            # Add "Other" class
-            if not other_df.empty:
+            # Sort the DataFrame by "Absolute Häufigkeit" in descending order
+            sorted_df = frequency_df.sort_values(by="Absolute Häufigkeit", ascending=False)
+            
+            # Select the top N classes
+            top_classes_df = sorted_df.head(num_classes)
+            other_classes_df = sorted_df.iloc[num_classes:]
+            
+            # Add "Sonstige" class
+            if not other_classes_df.empty:
                 other_row = pd.DataFrame({
                     "Klasse": ["Sonstige"],
-                    "Absolute Häufigkeit": [other_df["Absolute Häufigkeit"].sum()],
-                    "Relative Häufigkeit (%)": [other_df["Relative Häufigkeit (%)"].sum()]
+                    "Absolute Häufigkeit": [other_classes_df["Absolute Häufigkeit"].sum()],
+                    "Relative Häufigkeit (%)": [other_classes_df["Relative Häufigkeit (%)"].sum()]
                 })
-                filtered_df = pd.concat([filtered_df, other_row], ignore_index=True)
+                top_classes_df = pd.concat([top_classes_df, other_row], ignore_index=True)
             
             # Frequency distribution
-            st.write(f"Häufigkeitsverteilung der Klassen:")
-            fig, ax = plt.subplots(1, 2, figsize=(12, 6), gridspec_kw={'wspace': 0.3})
+            st.write(f"Anteil und Häufigkeitsverteilung der {num_classes} häufigsten Klassen:")
+
+            # Sort the DataFrame by "Absolute Häufigkeit" in descending order
+            sorted_df = frequency_df.sort_values(by="Absolute Häufigkeit", ascending=False)
+
+            # Select the top N classes
+            top_classes_df = sorted_df.head(num_classes)
+            other_classes_df = sorted_df.iloc[num_classes:]
+
+            # Add "Sonstige" class
+            if not other_classes_df.empty:
+                other_row = pd.DataFrame({
+                    "Klasse": ["Sonstige"],
+                    "Absolute Häufigkeit": [other_classes_df["Absolute Häufigkeit"].sum()],
+                    "Relative Häufigkeit (%)": [other_classes_df["Relative Häufigkeit (%)"].sum()]
+                })
+                top_classes_df = pd.concat([top_classes_df, other_row], ignore_index=True)
+
+            # Define a color palette
+            colors = plt.cm.tab20.colors  # You can choose any colormap you prefer
             
+            col21, col22 = st.columns(2)
+
+            # Define the figure size
+            fig_width, fig_height = 6, 6
+
             # Pie chart
-            filtered_df.set_index("Klasse")["Absolute Häufigkeit"].plot.pie(ax=ax[0], autopct='%1.1f%%', startangle=90)
-            ax[0].set_ylabel('')
-            
-            # Horizontal bar chart
-            filtered_df.set_index("Klasse")["Absolute Häufigkeit"].plot.barh(ax=ax[1])
-            ax[1].set_xlabel('Häufigkeit')
-            ax[1].set_ylabel('Klasse', rotation=0)
-            ax[1].yaxis.set_label_coords(-0.1, 1.02)  # Move the label to the top
+            with col21:
+                fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+                top_classes_df.set_index("Klasse")["Absolute Häufigkeit"].plot.pie(ax=ax, autopct='%1.2f%%', startangle=90, colors=colors[:len(top_classes_df)])
+                ax.set_ylabel('')
+                ax.set_aspect('equal')  # Ensure the pie chart is a circle
 
-            # Remove top and right spines
-            ax[1].spines['top'].set_visible(False)
-            ax[1].spines['right'].set_visible(False)
+                st.pyplot(fig)
+            # Horizontal bar chart (excluding "Sonstige")
+            with col22:
+                fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+                bar_chart_df = top_classes_df[top_classes_df["Klasse"] != "Sonstige"]
+                bar_chart_df = bar_chart_df.sort_values(by="Absolute Häufigkeit", ascending=True)  # Sort in ascending order for top-to-bottom display
+                bar_chart_df.set_index("Klasse")["Absolute Häufigkeit"].plot.barh(ax=ax, color=colors[:len(bar_chart_df)][::-1])
+                # Remove y-tick marks but keep labels
+                ax.tick_params(axis='y', length=0)
 
-            st.pyplot(fig)
+                ax.set_xlabel('Häufigkeit')
+                ax.set_ylabel('Klasse', rotation=0)
+                ax.yaxis.set_label_coords(-0.1, 1.02)  # Move the label to the top
 
-            # Missing values per class
-            num_missing_values = df[selected_column].isna().sum()
-            perc_missing_values = (num_missing_values / len(df)) * 100
-            
-            # Bar chart with number of missing values per class
-            # st.write(f"Anzahl Zeilen mit fehlenden Werten pro Klasse:")
-            missing_values = df.isnull().groupby(df[selected_column]).sum()
-            fig, ax = plt.subplots()
-            missing_values.plot.bar(ax=ax)
-            ax.set_title('Anzahl Zeilen mit fehlenden Werten pro Klasse')
-            st.pyplot(fig)
+                # Remove top and right spines
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+
+
+                st.pyplot(fig)
         
-        elif variable_type == "DateTime":
+        elif variable_type == "Datum":
             # Select a column to be interpreted as datetime
             datetime_column = st.selectbox("Wähle eine als Datum zu interpretierende Spalte", df.columns)
             
