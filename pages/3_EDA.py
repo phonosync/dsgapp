@@ -31,6 +31,17 @@ uploaded_file = st.file_uploader("Wähle eine csv-Datei", type="csv")
 if uploaded_file is not None:
     # Read the CSV file
     df = load_data(uploaded_file)
+
+    st.header('Übersicht')
+    # Display sample of the first 10 rows
+    st.write("Auszug aus Datensatz:")
+    st.dataframe(df.head(10), hide_index=True)
+
+    # Multiselect widget to exclude columns
+    columns_to_exclude = st.multiselect("Wähle Spalten, die von der Analyse ausgeschlossen werden sollen", df.columns.tolist())
+    
+    # Exclude selected columns
+    df.drop(columns=columns_to_exclude, inplace=True)
     
     # Calculate statistics
     num_rows, num_columns = df.shape
@@ -46,7 +57,7 @@ if uploaded_file is not None:
             "Anzahl Spalten",
             "Anzahl Zeilen",
             "Anzahl leerer Zellen",
-            "Anteil (%) leerer Tellen",
+            "Anteil (%) leerer Zellen",
             "Anzahl duplizierter Zeilen",
             "Anteil (%) duplizierter Zeilen"
         ],
@@ -73,16 +84,14 @@ if uploaded_file is not None:
         ]
     }).sort_values(by="Anzahl Spalten", ascending=False)
     
-    st.header('Übersicht')
+
     col1, col2 = st.columns(2)
     with col1:
         st.dataframe(summary_table, hide_index=True)
     with col2:
         st.dataframe(datatype_summary, hide_index=True)
     
-    # Display sample of the first 10 rows
-    st.write("Auszug aus Datensatz:")
-    st.dataframe(df.head(10), hide_index=True)
+    
 
     st.header('Univariate Analyse')
 
@@ -150,7 +159,7 @@ if uploaded_file is not None:
                 "Wert": [mean, std_dev, variance, cv, kurtosis, skewness]
             })
 
-            st.subheader("Descriptive Metriken")
+            st.subheader("Deskriptive Metriken")
             # Display the dataframes side by side
             col1, col2 = st.columns(2)
             with col1:
@@ -239,7 +248,7 @@ if uploaded_file is not None:
             st.dataframe(frequency_df, hide_index=True)
 
             # Input field for the number of most frequent classes to display
-            num_classes = st.number_input("Anzahl der häufigsten Klassen, die explizit dargestellt werden sollen:", min_value=1, max_value=len(frequency_df), value=5)
+            num_classes = st.number_input("Anzahl der häufigsten Klassen, die explizit dargestellt werden sollen:", min_value=1, max_value=num_distinct_classes, value=np.min([num_distinct_classes, 5]))
             
             # Sort the DataFrame by "Absolute Häufigkeit" in descending order
             sorted_df = frequency_df.sort_values(by="Absolute Häufigkeit", ascending=False)
@@ -297,7 +306,8 @@ if uploaded_file is not None:
                 fig, ax = plt.subplots(figsize=(fig_width, fig_height))
                 bar_chart_df = top_classes_df[top_classes_df["Klasse"] != "Sonstige"]
                 bar_chart_df = bar_chart_df.sort_values(by="Absolute Häufigkeit", ascending=True)  # Sort in ascending order for top-to-bottom display
-                bar_chart_df.set_index("Klasse")["Absolute Häufigkeit"].plot.barh(ax=ax, color=colors[:len(bar_chart_df)][::-1])
+                bar_colors = [colors[i % len(colors)] for i in range(len(bar_chart_df))][::-1]  # Ensure the number of colors matches the number of bars
+                bar_chart_df.set_index("Klasse")["Absolute Häufigkeit"].plot.barh(ax=ax, color=bar_colors)
                 # Remove y-tick marks but keep labels
                 ax.tick_params(axis='y', length=0)
 
@@ -363,7 +373,7 @@ if uploaded_file is not None:
         pearson_corr, _ = pearsonr(cleaned_df[sel_col_1], cleaned_df[sel_col_2])
         spearman_corr, _ = spearmanr(cleaned_df[sel_col_1], cleaned_df[sel_col_2])
 
-        st.write('Correlation coefficients:')
+        st.write('Korrelationskoeffizienten:')
         st.dataframe(pd.DataFrame(data=[[f'{pearson_corr:.2f}', f'{spearman_corr:.2f}']],
                     columns=['Pearson:', 'Spearman:']), hide_index=True) 
 
@@ -445,4 +455,4 @@ if uploaded_file is not None:
         st.pyplot(fig)
 
     else:
-        st.write("I do not know what to do")
+        st.write("Was soll ich tun?")
