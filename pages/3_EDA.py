@@ -41,15 +41,15 @@ if uploaded_file is not None:
     
     # Create a summary table
     summary_table = pd.DataFrame({
-        "Metric": [
-            "Number of columns",
-            "Number of rows",
-            "Number of missing cells",
-            "Percentage of missing cells",
-            "Number of duplicate rows",
-            "Percentage of duplicate rows"
+        "Metrik": [
+            "Anzahl Spalten",
+            "Anzahl Zeilen",
+            "Anzahl leerer Zellen",
+            "Anteil (%) leerer Tellen",
+            "Anzahl duplizierter Zeilen",
+            "Anteil (%) duplizierter Zeilen"
         ],
-        "Value": [
+        "Wert": [
             str(num_columns),
             str(num_rows),
             str(num_missing_cells),
@@ -64,15 +64,15 @@ if uploaded_file is not None:
 
     # Create a DataFrame with the number of columns per datatype
     datatype_summary = pd.DataFrame({
-        "Datatype": ["Numerical", "Categorical", "DateTime"],
-        "Number of Columns": [
+        "Datentyp": ["Numerisch", "Kategorisch", "Datum"],
+        "Anzahl Spalten": [
             sum(1 for v in variable_types.values() if v == "Numerical"),
             sum(1 for v in variable_types.values() if v == "Categorical"),
             sum(1 for v in variable_types.values() if v == "DateTime")
         ]
     }).sort_values(by="Number of Columns", ascending=False)
     
-    st.header('Overview')
+    st.header('Übersicht')
     col1, col2 = st.columns(2)
     with col1:
         st.dataframe(summary_table, hide_index=True)
@@ -80,22 +80,22 @@ if uploaded_file is not None:
         st.dataframe(datatype_summary, hide_index=True)
     
     # Display sample of the first 10 rows
-    st.write("Data sample:")
+    st.write("Datenbeispiel:")
     st.dataframe(df.head(10), hide_index=True)
 
-    st.header('Univariate Analysis')
+    st.header('Univariate Analyse')
 
     # Select a column to analyze
-    selected_column = st.selectbox("Select a column to analyze", df.columns)
+    selected_column = st.selectbox("Wähle die zu analysierende Spalte", df.columns)
     
     if selected_column:
         # Get the detected variable type for the selected column
         detected_type = variable_types[selected_column]
         
         # Select variable type for the selected column, with the detected type pre-selected
-        variable_type = st.selectbox(f"Adjust type for {selected_column}", ["Numerical", "Categorical", "DateTime"], index=["Numerical", "Categorical", "Timeseries"].index(detected_type))
+        variable_type = st.selectbox(f"Wähle Datentyp für {selected_column}", ["Numerisch", "Kategorisch", "Datum"], index=["Numerical", "Categorical", "Timeseries"].index(detected_type))
         
-        if variable_type == "Numerical":
+        if variable_type == "Numerisch":
             # Overview
             distinct_values = df[selected_column].nunique()
             missing_values = df[selected_column].isna().sum()
@@ -110,13 +110,13 @@ if uploaded_file is not None:
 
             # Create DataFrame for additional metrics
             df3 = pd.DataFrame({
-                "Metric": ["Distinct values", "Missing values or NaN", "Number of zeros", "Negative values"],
-                "Absolute": [distinct_values, missing_values, zeros, negative_values],
-                "Relative (%)": [perc_distinct_values, perc_missing_values, perc_zeros, perc_negative_values]
+                "Metrik": ["Eindeutige Werte", "Fehlende Werte oder NaN", "Nullwerte", "Negative Werte"],
+                "Anzahl": [distinct_values, missing_values, zeros, negative_values],
+                "Anteil (%)": [perc_distinct_values, perc_missing_values, perc_zeros, perc_negative_values]
             })
 
             # Display the additional metrics dataframe
-            st.subheader('Overview')
+            st.subheader('Übersicht Numerische Variable')
             st.dataframe(df3, hide_index=True)
 
             # Calculate descriptive statistics
@@ -139,17 +139,17 @@ if uploaded_file is not None:
 
             # Create DataFrame 1
             df1 = pd.DataFrame({
-                "Metric": ["Minimum", "5-th percentile", "Q1", "Median", "Q3", "95-th percentile", "Maximum", "Range", "Interquartile range (IQR)"],
-                "Value": [min_val, percentile_5, q1, median, q3, percentile_95, max_val, range_val, iqr]
+                "Metrik": ["Minimum", "5. Perzentil", "Q1", "Median", "Q3", "95. Perzentil", "Maximum", "Spannweite", "Interquartile Range (IQR)"],
+                "Wert": [min_val, percentile_5, q1, median, q3, percentile_95, max_val, range_val, iqr]
             })
 
             # Create DataFrame 2
             df2 = pd.DataFrame({
-                "Metric": ["Mean", "Standard deviation", "Variance", "Coefficient of variation (CV)", "Kurtosis", "Skewness"],
-                "Value": [mean, std_dev, variance, cv, kurtosis, skewness]
+                "Metrik": ["Mean", "Standardabweichung", "Varianz", "Coefficient of Variation (CV)", "Kurtosis", "Skewness"],
+                "Wert": [mean, std_dev, variance, cv, kurtosis, skewness]
             })
 
-            st.subheader("Descriptive Statistics")
+            st.subheader("Descriptive Metriken")
             # Display the dataframes side by side
             col1, col2 = st.columns(2)
             with col1:
@@ -158,18 +158,18 @@ if uploaded_file is not None:
                 st.dataframe(df2, hide_index=True)
             
             # Histogram
-            st.subheader('Histogram')
+            st.subheader('Histogramm')
             # Drop NaN values for histogram calculation
             cleaned_data = df[selected_column].dropna()
             # Calculate default number of bins using numpy
             default_bins = np.histogram_bin_edges(cleaned_data, bins='auto').size - 1
-            bins = st.slider('Select number of bins for histogram', min_value=1, max_value=100, value=default_bins)
+            bins = st.slider('Wähle die Anzahl Bins', min_value=1, max_value=100, value=default_bins)
 
             # Display histogram
             fig, ax = plt.subplots()
             cleaned_data.hist(ax=ax, bins=bins)
-            ax.set_title(f'Histogram')
-            ax.set_ylabel('Frequency')
+            ax.set_title(f'Histogramm')
+            ax.set_ylabel('Häufigkeit')
             ax.set_xlabel(selected_column)
             ax.grid(False)  # Remove grid
             ax.spines['top'].set_visible(False)  # Remove top spine
@@ -226,44 +226,44 @@ if uploaded_file is not None:
 
             num_distinct_classes = df[selected_column].nunique()
             
-            st.write(f'Number of distinct classes: {num_distinct_classes}')
+            st.write(f'Anzahl Klassen: {num_distinct_classes}')
 
             # Construct a DataFrame with absolute and relative frequency per class
             frequency_df = pd.DataFrame({
-                "Class": df[selected_column].value_counts().index,
-                "Absolute Frequency": df[selected_column].value_counts().values,
-                "Relative Frequency (%)": (df[selected_column].value_counts(normalize=True) * 100).values
-            }).sort_values(by="Absolute Frequency", ascending=False)
+                "Klasse": df[selected_column].value_counts().index,
+                "Absolute Häufigkeit": df[selected_column].value_counts().values,
+                "Relative Häufigkeit (%)": (df[selected_column].value_counts(normalize=True) * 100).values
+            }).sort_values(by="Absolute Häufigkeit", ascending=False)
             
             st.dataframe(frequency_df, hide_index=True)
 
             # Input field for threshold value
-            threshold = st.number_input("All classes with relative frequency equal or below the threshold value (%) are grouped into 'Other':", min_value=0, max_value=100, value=5)
+            threshold = st.number_input("Alle Klassen, deren relative Häufigkeit dem Schwellenwert (%) entspricht oder darunter liegt, werden unter „Sonstige“ zusammengefasst:", min_value=0, max_value=100, value=5)
 
-            filtered_df = frequency_df[frequency_df["Relative Frequency (%)"] > threshold]
-            other_df = frequency_df[frequency_df["Relative Frequency (%)"] <= threshold]
+            filtered_df = frequency_df[frequency_df["Relative Häufigkeit (%)"] > threshold]
+            other_df = frequency_df[frequency_df["Relative Häufigkeit (%)"] <= threshold]
             
             # Add "Other" class
             if not other_df.empty:
                 other_row = pd.DataFrame({
-                    "Class": ["Other"],
-                    "Absolute Frequency": [other_df["Absolute Frequency"].sum()],
-                    "Relative Frequency (%)": [other_df["Relative Frequency (%)"].sum()]
+                    "Klasse": ["Sonstige"],
+                    "Absolute Häufigkeit": [other_df["Absolute Häufigkeit"].sum()],
+                    "Relative Häufigkeit (%)": [other_df["Relative Häufigkeit (%)"].sum()]
                 })
                 filtered_df = pd.concat([filtered_df, other_row], ignore_index=True)
             
             # Frequency distribution
-            st.write(f"Frequency distribution of classes:")
+            st.write(f"Häufigkeitsverteilung der Klassen:")
             fig, ax = plt.subplots(1, 2, figsize=(12, 6), gridspec_kw={'wspace': 0.3})
             
             # Pie chart
-            filtered_df.set_index("Class")["Absolute Frequency"].plot.pie(ax=ax[0], autopct='%1.1f%%', startangle=90)
+            filtered_df.set_index("Klasse")["Absolute Häufigkeit"].plot.pie(ax=ax[0], autopct='%1.1f%%', startangle=90)
             ax[0].set_ylabel('')
             
             # Horizontal bar chart
-            filtered_df.set_index("Class")["Absolute Frequency"].plot.barh(ax=ax[1])
-            ax[1].set_xlabel('Frequency')
-            ax[1].set_ylabel('Class', rotation=0)
+            filtered_df.set_index("Klasse")["Absolute Häufigkeit"].plot.barh(ax=ax[1])
+            ax[1].set_xlabel('Häufigkeit')
+            ax[1].set_ylabel('Klasse', rotation=0)
             ax[1].yaxis.set_label_coords(-0.1, 1.02)  # Move the label to the top
 
             # Remove top and right spines
@@ -277,28 +277,29 @@ if uploaded_file is not None:
             perc_missing_values = (num_missing_values / len(df)) * 100
             
             # Bar chart with number of missing values per class
-            st.write(f"Number of missing values per class in {selected_column}:")
-            missing_values = df[selected_column].isnull().groupby(df[selected_column]).sum()
+            # st.write(f"Anzahl Zeilen mit fehlenden Werten pro Klasse:")
+            missing_values = df.isnull().groupby(df[selected_column]).sum()
             fig, ax = plt.subplots()
             missing_values.plot.bar(ax=ax)
-            ax.set_title('Missing Values per Class')
+            ax.set_title('Anzahl Zeilen mit fehlenden Werten pro Klasse')
             st.pyplot(fig)
         
         elif variable_type == "DateTime":
             # Select a column to be interpreted as datetime
-            datetime_column = st.selectbox("Select a column to be interpreted as datetime", df.columns)
+            datetime_column = st.selectbox("Wähle eine als Datum zu interpretierende Spalte", df.columns)
             
             if datetime_column:
                 df[datetime_column] = pd.to_datetime(df[datetime_column])
                 df.set_index(datetime_column, inplace=True)
                 
                 # Display timeseries plot
-                st.write(f"Timeseries plot for {selected_column}:")
+                # st.write(f"Timeseries plot for {selected_column}:")
                 fig, ax = plt.subplots()
+                ax.set_title(f"Zeitreihe für {selected_column}:")
                 df[selected_column].plot(ax=ax)
                 st.pyplot(fig)
 
-    st.header('Interactions')
+    st.header('Wechselwirkungen')
 
     col1, col2 = st.columns(2)
     with col1:
