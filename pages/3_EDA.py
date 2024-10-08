@@ -70,7 +70,7 @@ if uploaded_file is not None:
             sum(1 for v in variable_types.values() if v == "Categorical"),
             sum(1 for v in variable_types.values() if v == "DateTime")
         ]
-    }).sort_values(by="Number of Columns", ascending=False)
+    }).sort_values(by="Anzahl Spalten", ascending=False)
     
     st.header('Übersicht')
     col1, col2 = st.columns(2)
@@ -80,7 +80,7 @@ if uploaded_file is not None:
         st.dataframe(datatype_summary, hide_index=True)
     
     # Display sample of the first 10 rows
-    st.write("Datenbeispiel:")
+    st.write("Auszug aus Datensatz:")
     st.dataframe(df.head(10), hide_index=True)
 
     st.header('Univariate Analyse')
@@ -222,7 +222,7 @@ if uploaded_file is not None:
 
             st.pyplot(fig)
         
-        elif variable_type == "Categorical":
+        elif variable_type == "Kategorisch":
 
             num_distinct_classes = df[selected_column].nunique()
             
@@ -232,7 +232,7 @@ if uploaded_file is not None:
             frequency_df = pd.DataFrame({
                 "Klasse": df[selected_column].value_counts().index,
                 "Absolute Häufigkeit": df[selected_column].value_counts().values,
-                "Relative Häufigkeit (%)": (df[selected_column].value_counts(normalize=True) * 100).values
+                "Relative Häufigkeit (%)": (df[selected_column].value_counts(normalize=True) * 100).values.round(2)
             }).sort_values(by="Absolute Häufigkeit", ascending=False)
             
             st.dataframe(frequency_df, hide_index=True)
