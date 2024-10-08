@@ -41,7 +41,7 @@ with col3:
 #                             the same row instead of all unique pairs of words in the first 
 #                             two columns.''')
 
-inp_file = st.file_uploader("Wählen Sie eine csv-Datei")
+inp_file = st.file_uploader("Wähle eine csv-Datei")
 
 if inp_file is not None:
         
