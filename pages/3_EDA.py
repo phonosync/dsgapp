@@ -238,9 +238,8 @@ if uploaded_file is not None:
             st.dataframe(frequency_df, hide_index=True)
 
             # Input field for threshold value
-            st.write("All classes with relative frequency equal or below the threshold value are grouped into 'Other':")
-            threshold = st.number_input("Enter a threshold value (%)", min_value=0, max_value=100, value=5)
-            
+            threshold = st.number_input("All classes with relative frequency equal or below the threshold value (%) are grouped into 'Other':", min_value=0, max_value=100, value=5)
+
             filtered_df = frequency_df[frequency_df["Relative Frequency (%)"] > threshold]
             other_df = frequency_df[frequency_df["Relative Frequency (%)"] <= threshold]
             
