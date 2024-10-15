@@ -11,7 +11,7 @@ import joblib
 import io
 import utils
 
-st.title('Lineare und Polynomiale Regression')
+st.title('Regressionsmethoden')
 
 @st.cache_data
 def load_data(uploaded_file):
