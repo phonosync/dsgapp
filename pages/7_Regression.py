@@ -34,7 +34,10 @@ def load_data(uploaded_file):
                                   header_row=True)
 
 
-st.subheader('Training und Evaluation eines Regressionsmodells')
+st.header('Training und Evaluation eines Regressionsmodells')
+
+st.subheader('Training')
+st.write('Trainiere ein Regressionsmodell auf den Trainingsdaten in einer CSV-Datei')
 # File uploader for training data
 train_file = st.file_uploader("Wähle eine CSV-Datei mit den Trainingsdaten", type="csv")
 
@@ -89,6 +92,11 @@ if train_file is not None:
                 model.fit(X, y)
                 model.date_trained = datetime.now()
                 st.success("Das Modell wurde erfolgreich trainiert.")
+
+                # Save the model to session state
+                st.session_state['trained_model'] = model
+                st.session_state['predictors'] = predictors
+                st.session_state['target'] = target
             
                 # Allow user to download the serialized model
                 model_file = io.BytesIO()
@@ -98,10 +106,12 @@ if train_file is not None:
                 st.download_button("Trainiertes Modell herunterladen", model_file,
                                 file_name=f"{model.method}_{model.date_trained.strftime('%M-%H-%d-%m-%Y')}_{model.id}.pkl")
             
+            st.subheader('Evaluation')
+            st.write('Teste das trainierte Modell auf einem unabhängigen Test-Datensatz')
             # File uploader for test data
             test_file = st.file_uploader("Wähle eine CSV-Datei mit den Testdaten", type="csv")
 
-            if test_file is not None:
+            if test_file is not None and st.session_state['trained_model']:
                 # Read the CSV file
                 test_df = load_data(train_file)
                 
@@ -117,6 +127,11 @@ if train_file is not None:
                 elif not all(col in test_df.columns for col in predictors):
                     st.error("Die Testdaten enthalten nicht alle für das Training verwendeten Spalten. Bitte überprüfen Sie die Daten und laden Sie sie erneut hoch.")
                 else:
+                    # Load the trained model from session state
+                    model = st.session_state['trained_model']
+                    predictors = st.session_state['predictors']
+                    target = st.session_state['target']
+
                     # Make predictions
                     X_test = test_df[predictors]
                     y_test = test_df[target]
@@ -135,7 +150,7 @@ if train_file is not None:
                     st.dataframe(df_metrics, hide_index=True)
 
 st.subheader('Inferenz')
-st.write('Berechne Vorhersagen basierend auf einem bereits trainierten Modell und neuen Eingabewerten.')
+st.write('Berechne Vorhersagen basierend auf einem bereits trainierten Modell mit neuen Eingabewerten.')
 
 # File uploader for trained model
 model_file = st.file_uploader("Wähle eine Datei mit einem trainierten Modell", type="pkl")
@@ -175,7 +190,7 @@ if model_file is not None:
         if st.button("Vorhersage berechnen"):
             input_df = pd.DataFrame([input_values])
             prediction = model.predict(input_df)
-            st.write(f"Vorhergesagter Wert: {prediction[0]}")
+            st.write(f"Vorhergesagter Wert: {prediction[0]:.2f}")
 
         st.write('Berechne Vorhersagen auf Eingabewerte in einer Datei:')
         # File uploader for new data
