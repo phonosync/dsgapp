@@ -48,15 +48,14 @@ if metric == 'cosine':
                 die Kosinus-Distanz zwischen zwei Vektoren 
             $=1-\\frac{\mathbf{u}\cdot \mathbf{v}}{||\mathbf{u}|| \cdot ||\mathbf{v}||}$''',icon="⚠️")
 
-st.write('''Lade eine csv-Datei mit den Daten hoch. Ein Sample pro 
-            Zeile. Die erste Reihe wird als Kopfzeile mit Merkmal-Bezeichnungen interpretiert.''')
-df_sample_inp = pd.DataFrame({'Variable 1': [0.0, 4.1, 2.3], 'Variable 2': [0, 1, 1], 
-                                'Variable 3': [5, 3, 9]})
-st.markdown(df_sample_inp.style.hide(axis="index").to_html(), unsafe_allow_html=True)
+st.write('''Lade eine csv-Datei mit den Daten hoch. Ein Sample pro Zeile.\\
+            Die erste Reihe kann als Kopfzeile mit Merkmal-Bezeichnungen interpretiert werden.\\
+            Die erste Spalte kann als Sample-Indices interpretiert werden. Diese werden, wenn vorhanden, als Spalten- und Zeilen-Labels im Output-File verwendet.
+         ''')
+# df_sample_inp = pd.DataFrame({'Variable 1': [0.0, 4.1, 2.3], 'Variable 2': [0, 1, 1], 
+#                                'Variable 3': [5, 3, 9]})
+# st.markdown(df_sample_inp.style.hide(axis="index").to_html(), unsafe_allow_html=True)
 
-
-st.text("")
-st.text("")
 st.write("""Sample-Indices können in der ersten Spalte des hochgeladenen Datei 
             angegeben werden. Sie werden als Spalten- und Zeilen-Labels im Output-File 
             verwendet. Wähle in der folgenden Checkbox:""")
@@ -64,7 +63,10 @@ st.write("""Sample-Indices können in der ersten Spalte des hochgeladenen Datei
 df_sample_inp = pd.DataFrame({'Index': ['Sample 1', 'Sample 2', 'Sample 3'], 
                                 'Merkmal 1': [0.0, 4.1, 2.3], 'Merkmal 2': [0, 1, 1], 
                                 'Merkmal 3': [5, 3, 9]})
-st.markdown(df_sample_inp.style.hide(axis="index").to_html(), unsafe_allow_html=True)
+
+st.dataframe(df_sample_inp, hide_index=True)
+
+# st.markdown(df_sample_inp.style.hide(axis="index").to_html(), unsafe_allow_html=True)
 
 index_column = st.checkbox('Erste Spalte enthält Sample-Indizes')
 header_row = st.checkbox('Erste Zeile enthält Spalten-Labels') 
