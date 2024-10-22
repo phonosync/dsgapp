@@ -15,10 +15,6 @@ import uuid
 from datetime import datetime
 import utils
 
-st.session_state['trained_model'] = None
-st.session_state['predictors'] = None
-st.session_state['target'] = None
-
 st.title('Klassifikationsmethoden')
 
 st.header('Training und Evaluation eines Klassifikationsmodells')
