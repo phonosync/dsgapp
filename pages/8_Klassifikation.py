@@ -22,7 +22,9 @@ st.header('Training und Evaluation eines Klassifikationsmodells')
 # Define the list of acceptable model types
 supported_methods = {"Nächste Nachbarn-Heuristik": "KNeighborsClassification",
                      "Logistische Regression": "LogisticRegression",
-                     "Support Vector Machines": "SupportVectorMachines" 
+                     "Support Vector Machines": "SupportVectorMachines",
+                     "Dummy - Zufall": "DummyRandom",
+                     "Dummy - Häufigste Klasse": "DummyMostFrequent"
                     }
 
 def get_key_from_value(d, value):
@@ -101,6 +103,14 @@ if train_file is not None:
                 metric = st.selectbox("Wähle die Ähnlichkeitsmetrik", ["manhattan", "euclidean", "cosine"])
                 model = KNeighborsClassifier(n_neighbors=n_neighbors, metric=metric)
                 model.hyperpars_str = f'k: {n_neighbors}, Distanz-Metrik: {metric}'
+            elif selected_method == "Dummy - Zufall":
+                from sklearn.dummy import DummyClassifier
+                model = DummyClassifier(strategy="uniform")
+                model.hyperpars_str = ''
+            elif selected_method == "Dummy - Häufigste Klasse":
+                from sklearn.dummy import DummyClassifier
+                model = DummyClassifier(strategy="most_frequent")
+                model.hyperpars_str = ''
             
             model.method = supported_methods[selected_method]
             
@@ -144,11 +154,11 @@ if train_file is not None:
                     
                     # Consistency check: no missing values, only numeric values allowed, and all columns used in training are present
                     if test_df.isnull().values.any():
-                        st.error("Die Testdaten enthalten fehlende Werte. Bitte bereinigen Sie die Daten und laden Sie sie erneut hoch.")
+                        st.error("Die Testdaten enthalten fehlende Werte. Bitte bereinige die Daten und lade sie erneut hoch.")
                     elif not all(test_df.dtypes.apply(lambda x: np.issubdtype(x, np.number))):
-                        st.error("Die Testdaten enthalten nicht-numerische Werte. Bitte bereinigen Sie die Daten und laden Sie sie erneut hoch.")
+                        st.error("Die Testdaten enthalten nicht-numerische Werte. Bitte bereinige die Daten und lade sie erneut hoch.")
                     elif not all(col in test_df.columns for col in predictors):
-                        st.error("Die Testdaten enthalten nicht alle für das Training verwendeten Spalten. Bitte überprüfen Sie die Daten und laden Sie sie erneut hoch.")
+                        st.error("Die Testdaten enthalten nicht alle für das Training verwendeten Spalten. Bitte überprüfe die Daten und lade sie erneut hoch.")
                     else:
                         # Make predictions
                         X_test = test_df[predictors]
