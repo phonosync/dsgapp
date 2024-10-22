@@ -10,9 +10,9 @@ import surprise_utils as s_utils
 
 TRAINED = False
 
-st.title("Recommender System")
+st.title("Kollaboratives Filtern")
 
-st.write('''App zur Erstellung eines Recommender-Systems basierend auf Kollaborativen Filtern-Verfahren.
+st.write('''App zur Erstellung eines Empfehlungsdienstes (Recommender System) basierend auf Kollaborativen Filtern-Verfahren.
          Ratings für User-Item Paare müssen als Trainingsdatensatz zur Verfügung gestellt werden:''')
 df_styler = pd.DataFrame({'USER_ID': ['ab$956', 'kl73fv', 'xx98gh'], 'ITEM_ID': [0, 1, 1], 
                           'RATING': [4, 1, 3]}).style.hide()
