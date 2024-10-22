@@ -126,7 +126,7 @@ if train_file is not None:
                 st.session_state['predictors'] = predictors
                 st.session_state['target'] = target
 
-            if st.session_state['trained_model']:
+            if 'trained_model' in st.session_state and st.session_state['trained_model']:
                 # Load the trained model from session state
                 model = st.session_state['trained_model']
                 predictors = st.session_state['predictors']
