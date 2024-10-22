@@ -20,8 +20,10 @@ st.title('Klassifikationsmethoden')
 st.header('Training und Evaluation eines Klassifikationsmodells')
 
 # Define the list of acceptable model types
-supported_methods = {"Logistische Regression": "LogisticRegression", "Support Vector Machines": "SupportVectorMachines", 
-                    "Nächste Nachbarn-Heuristik": "KNeighborsClassification"}
+supported_methods = {"Nächste Nachbarn-Heuristik": "KNeighborsClassification",
+                     "Logistische Regression": "LogisticRegression",
+                     "Support Vector Machines": "SupportVectorMachines" 
+                    }
 
 def get_key_from_value(d, value):
     for key, val in d.items():
@@ -70,7 +72,7 @@ if train_file is not None:
         
         # User selects predictors and target variable
         predictors = st.multiselect("Wähle die unabhängigen Merkmale, die im Training berücksichtig werden sollen", columns)
-        target = st.selectbox("Wähle die abhängige Variable (Zielvariable/Labels)", columns)
+        target = st.selectbox("Wähle die abhängige Variable (Zielvariable/Labels)", columns[::-1])
 
         if predictors and target:
             # Slice for selected predictors and target
@@ -163,7 +165,7 @@ if train_file is not None:
                         # Display metrics
                         # Create DataFrame
                         df_metrics = pd.DataFrame([[selected_method, model.hyperpars_str, model.id, accuracy, precision, recall, f1]],
-                                                columns=['Methode', 'Hyperparameter', 'Modell-Id', 'Genauigkeit', 'Präzision', 'Recall', 'F1-Score'])
+                                                columns=['Methode', 'Hyperparameter', 'Modell-Id', 'Accuracy', 'Precision', 'Recall', 'F1-Score'])
                         st.write("Evaluationsmetriken berechnet für die Vorhersagen auf den Testdaten:")
                         st.dataframe(df_metrics, hide_index=True)
 
