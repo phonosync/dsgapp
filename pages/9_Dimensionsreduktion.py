@@ -37,12 +37,10 @@ def load_data(uploaded_file):
 
 st.write("""Lade die Trainingsdaten als csv-Datei in folgendem Format hoch:\\
              Erste Zeile: Spaltenbezeichnungen. 
-             Eine Spalte pro Feature (unabhängige Variablen) und für die
-              Zielvariable (Labels, die es mit dem zu trainierenden Modell vorherzusagen gilt).
-             Alle Einträge müssen in numerischer Form kodiert vorliegen. Beispiel mit 3 Features, 
-             der Zielvariable (insgesamt 4 Spalten) und 4 Samples (mit der Kopzeile insgesamt 5 Zeilen):""")
+             Eine Spalte pro Feature (unabhängige Variablen).
+             Alle Einträge müssen in numerischer Form kodiert vorliegen. Beispiel mit 3 Features und 4 Samples (mit der Kopzeile insgesamt 5 Zeilen):""")
 df = pd.DataFrame({'Feature 1': [0.0, 4.1, 2.3, 1.9], 'Feature 2': [0, 1, 1, 0], 
-                              'Feature 3': [5, 3, 9, 2], 'Target': [0, 1, 1, 1]}
+                              'Feature 3': [5, 3, 9, 2]}
                               )
 
 st.dataframe(df, hide_index=True)
