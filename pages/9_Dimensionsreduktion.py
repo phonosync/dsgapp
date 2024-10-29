@@ -73,8 +73,8 @@ if train_file is not None:
             st.error("Die Daten enthalten nicht-numerische Werte. Bitte bereinige die Daten und lade sie erneut hoch.")
         else:
             # User selects number of desired dimensions
-            n_components = st.number_input("Wähle die Anzahl der gewünschten Dimensionen", min_value=1,
-                                        max_value=X.shape[1], value=2)
+            n_components = st.number_input("Wähle die Anzahl der zu berechnenden Dimensionen", min_value=1,
+                                        max_value=X.shape[1], value=np.min([2, X.shape[1]]))
 
             # User selects dimensionality reduction method
             selected_method = st.selectbox("Wähle die Methode", ["Hauptkomponentenanalyse", "t-SNE"])
@@ -86,14 +86,18 @@ if train_file is not None:
                 model.hyperpars_str = f'n_components: {n_components}'
             elif selected_method == "t-SNE":
                 from sklearn.manifold import TSNE
+                st.write("Zu wählende Hyperparameter:")
                 perplexity = st.number_input("Wähle die Perplexität", min_value=5, value=30)
                 learning_rate = st.number_input("Wähle die Lernrate", min_value=10, value=200)
-                n_iter = st.number_input("Wähle die Anzahl der Iterationen", min_value=250, value=1000)
-                model = TSNE(n_components=n_components, perplexity=perplexity, learning_rate=learning_rate, n_iter=n_iter)
+                max_iter = st.number_input("Wähle die Anzahl der Iterationen", min_value=250, value=1000)
+                # method = st.selectbox("Wähle die Methode", ["barnes_hut", "exact"])
+                model = TSNE(n_components=n_components, perplexity=perplexity, learning_rate=learning_rate, max_iter=max_iter)
 
-                model.hyperpars_str = f'n_components: {n_components}, perplexity: {perplexity}, learning_rate: {learning_rate}, n_iter: {n_iter}'
+                model.hyperpars_str = f'n_components: {n_components}, perplexity: {perplexity}, learning_rate: {learning_rate}, max_iter: {max_iter}'
                     
-            model.method = supported_methods[selected_method]
+            model.method_label = supported_methods[selected_method]
+
+            st.session_state['trained_model'] = None
             
             # Train the  model
             if st.button("Modell trainieren"):
@@ -102,6 +106,17 @@ if train_file is not None:
                 model.date_trained = datetime.now()
                 st.success("Das Modell wurde erfolgreich trainiert.")
 
+                # Calculate evaluation metrics
+                if model.method_label == 'PCA':
+                    explained_variance = model.explained_variance_ratio_
+                    # st.write("Erklärte Varianzverhältnisse der Hauptkomponenten:")
+                    # for i, var in enumerate(explained_variance):
+                    #    st.write(f"Komponente {i+1}: {var:.2f}")
+                elif model.method_label == 'tSNE':
+                    from sklearn.manifold import trustworthiness
+                    model.trustworthiness = trustworthiness(X, X_transformed)
+                    # st.write(f"Trustworthiness: {trust:.2f}")
+                
                 # Save the model to session state
                 st.session_state['trained_model'] = model
                 st.session_state['predictors'] = predictors
@@ -115,21 +130,33 @@ if train_file is not None:
                 model_file = io.BytesIO()
                 joblib.dump(model, model_file)
                 model_file.seek(0)
+
+                df_modelinfo = pd.DataFrame([[get_key_from_value(supported_methods, model.method_label), model.hyperpars_str, model.id,
+                                    model.date_trained.strftime("%d.%m.%Y, %H:%M"), '|'.join(predictors)]],
+                                    columns=['Methode', 'Hyperparameter', 'Modell-Id', 'Trainingszeitpunkt', 'Unabhängige Variablen']
+                                    )
+                
+                st.write('Modell-Infos:')
+                st.dataframe(df_modelinfo, hide_index=True)
                 
                 st.download_button("Trainiertes Modell herunterladen", model_file,
-                                file_name=f"{model.method}_{model.date_trained.strftime('%M-%H-%d-%m-%Y')}_{model.id}.pkl")
+                                file_name=f"{model.method_label}_{model.date_trained.strftime('%M-%H-%d-%m-%Y')}_{model.id}.pkl")
 
                 # Create a DataFrame for the predictions
                 df_Xtransformed = pd.DataFrame(st.session_state['X_transformed'], columns=[f'Dimension_{i}' for i in range(n_components)])
                 
-                df_modelinfo = pd.DataFrame([[get_key_from_value(supported_methods, model.method), model.hyperpars_str, model.id,
-                                    model.date_trained.strftime("%d.%m.%Y, %H:%M"), '|'.join(predictors)]],
-                                    columns=['Methode', 'Hyperparameter', 'Modell-Id', 'Trainingszeitpunkt', 'Unabhängige Variablen']
-                                    )
-
                 # Display predictions
-                st.write(f"Transformierte Daten:")
-                st.dataframe(df_Xtransformed, hide_index=True)
+                # st.write(f"Transformierte Daten:")
+                # st.dataframe(df_Xtransformed, hide_index=True)
+
+                df_metrics = pd.DataFrame([[model.method_label, model.hyperpars_str, model.id]],
+                                                columns=['Methode', 'Hyperparameter', 'Modell-Id'])
+                
+                if model.method_label == 'tSNE':
+                    df_metrics['Trustworthiness'] = [model.trustworthiness]
+                elif model.method_label == 'PCA':
+                    for i, var in enumerate(model.explained_variance_ratio_):
+                        df_metrics[f'Var_Komponente_{i+1}'] = [var]
 
                 # Create a Pandas Excel writer using openpyxl as the engine
                 excel_buffer = io.BytesIO()
@@ -142,6 +169,8 @@ if train_file is not None:
 
                     # Write df_modelinfo to the third sheet
                     df_modelinfo.to_excel(writer, sheet_name='Modell-Infos', index=False)
+
+                    df_metrics.to_excel(writer, sheet_name="Evaluation", index=False)
                     
                     
                 # Load the workbook to clear formatting
@@ -165,4 +194,5 @@ if train_file is not None:
                                 )
                 
                 st.subheader('Evaluation')
+                st.dataframe(df_metrics, hide_index=True)
             
