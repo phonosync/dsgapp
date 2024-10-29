@@ -78,6 +78,7 @@ if train_file is not None:
 
             if selected_method == "k-Means":
                 from sklearn.cluster import KMeans
+                st.write("Zu wählende Hyperparameter:")
                 n_clusters = st.number_input("Wähle die Anzahl der Cluster", min_value=1, value=3)
                 metric = st.selectbox("Wähle die Distanzmetrik", ["euclidean"])
                 init = st.selectbox("Wähle die Initialisierungsmethode", ["k-means++", "random"])
@@ -86,6 +87,7 @@ if train_file is not None:
                 model.hyperpars_str = f'n_clusters: {n_clusters}, init: {init}, max_iter: {max_iter}'
             elif selected_method == "DBSCAN":
                 from sklearn.cluster import DBSCAN
+                st.write("Zu wählende Hyperparameter:")
                 metric = st.selectbox("Wähle die Distanzmetrik", ["euclidean", "manhattan", "cosine"])
                 eps = st.number_input("Wähle den Radius der Nachbarschaft (eps)", min_value=0.1, value=0.5, step=0.1)
                 st.markdown("**eps**: Der maximale Abstand zwischen zwei Samples, sodass sie derselben Nachbarschaft angehören können. Dies ist jedoch keine maximale Grenze für die Abstände von Punkten innerhalb eines Clusters.")
@@ -94,7 +96,7 @@ if train_file is not None:
                 model = DBSCAN(eps=eps, min_samples=min_samples, metric=metric)
                 model.hyperpars_str = f'eps: {eps}, min_samples: {min_samples}'
                 
-            model.method = supported_methods[selected_method]
+            model.method_label = supported_methods[selected_method]
             st.session_state['trained_model'] = None
             # Train the  model
             if st.button("Modell trainieren"):
@@ -120,20 +122,30 @@ if train_file is not None:
                 model_file.seek(0)
                 
                 st.download_button("Trainiertes Modell herunterladen", model_file,
-                                file_name=f"{model.method}_{model.date_trained.strftime('%M-%H-%d-%m-%Y')}_{model.id}.pkl")
+                                file_name=f"{model.method_label}_{model.date_trained.strftime('%M-%H-%d-%m-%Y')}_{model.id}.pkl")
 
                 # Create a DataFrame for the features and derived labels
                 df_features_labels = pd.DataFrame(X, columns=predictors)
                 df_features_labels['Cluster'] = labels
 
-                df_modelinfo = pd.DataFrame([[get_key_from_value(supported_methods, model.method), model.hyperpars_str, model.id,
+                df_modelinfo = pd.DataFrame([[get_key_from_value(supported_methods, model.method_label), model.hyperpars_str, model.id,
                                     model.date_trained.strftime("%d.%m.%Y, %H:%M"), '|'.join(predictors)]],
                                     columns=['Methode', 'Hyperparameter', 'Modell-Id', 'Trainingszeitpunkt', 'Merkmale']
                                     )
 
+                # Calculate evaluation metrics
+                from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+                
+                silhouette_avg = silhouette_score(X, labels)
+                davies_bouldin = davies_bouldin_score(X, labels)
+                calinski_harabasz = calinski_harabasz_score(X, labels)
+                
+                df_metrics = pd.DataFrame([[selected_method, model.hyperpars_str, model.id, silhouette_avg, davies_bouldin, calinski_harabasz]],
+                                                columns=['Methode', 'Hyperparameter', 'Modell-Id', 'Silhouette Score', 'Davies-Bouldin Index', 'Calinski-Harabasz Index'])
+
                 # Display predictions
-                st.write(f"Samples mit zugeordneten Clustern:")
-                st.dataframe(df_features_labels, hide_index=True)
+                # st.write(f"Samples mit zugeordneten Clustern:")
+                # st.dataframe(df_features_labels, hide_index=True)
 
                 # Create a Pandas Excel writer using openpyxl as the engine
                 excel_buffer = io.BytesIO()
@@ -143,6 +155,9 @@ if train_file is not None:
 
                     # Write df_modelinfo to the second sheet
                     df_modelinfo.to_excel(writer, sheet_name='Modell-Infos', index=False)
+
+                    common_columns = df_modelinfo.columns.intersection(df_metrics.columns)
+                    df_metrics.drop(columns=common_columns).to_excel(writer, sheet_name="Evaluation", index=False)
                     
                     
                 # Load the workbook to clear formatting
@@ -166,16 +181,7 @@ if train_file is not None:
                                 )
                 
                 st.subheader('Evaluation')
-                # Calculate evaluation metrics
-                from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
                 
-                silhouette_avg = silhouette_score(X, labels)
-                davies_bouldin = davies_bouldin_score(X, labels)
-                calinski_harabasz = calinski_harabasz_score(X, labels)
-                
-                df_metrics = pd.DataFrame([[selected_method, model.hyperpars_str, model.id, silhouette_avg, davies_bouldin, calinski_harabasz]],
-                                                columns=['Methode', 'Hyperparameter', 'Modell-Id', 'Silhouette Score', 'Davies-Bouldin Index', 'Calinski-Harabasz Index'])
-
                 st.dataframe(df_metrics, hide_index=True)
 
                 st.markdown("**Silhouette Score**: Misst, wie ähnlich ein Objekt seinem eigenen Cluster im Vergleich zu anderen Clustern ist. Der Wert reicht von -1 bis 1, wobei ein höherer Wert für besser definierte Cluster steht.  \n\n"
