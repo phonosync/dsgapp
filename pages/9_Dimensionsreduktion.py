@@ -170,7 +170,8 @@ if train_file is not None:
                     # Write df_modelinfo to the third sheet
                     df_modelinfo.to_excel(writer, sheet_name='Modell-Infos', index=False)
 
-                    df_metrics.to_excel(writer, sheet_name="Evaluation", index=False)
+                    common_columns = df_modelinfo.columns.intersection(df_metrics.columns)
+                    df_metrics.drop(columns=common_columns).to_excel(writer, sheet_name="Evaluation", index=False)
                     
                     
                 # Load the workbook to clear formatting
