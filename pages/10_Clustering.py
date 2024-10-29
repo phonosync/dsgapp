@@ -21,7 +21,7 @@ st.title('Clusteranalyse')
 
 # Define the list of acceptable model types
 supported_methods = {"k-Means": "kMeans",
-                     "DBSCAM": "DBSCAN"
+                     "DBSCAN": "DBSCAN"
                     }
 
 def get_key_from_value(d, value):
@@ -79,19 +79,23 @@ if train_file is not None:
             if selected_method == "k-Means":
                 from sklearn.cluster import KMeans
                 n_clusters = st.number_input("Wähle die Anzahl der Cluster", min_value=1, value=3)
+                metric = st.selectbox("Wähle die Distanzmetrik", ["euclidean"])
                 init = st.selectbox("Wähle die Initialisierungsmethode", ["k-means++", "random"])
                 max_iter = st.number_input("Wähle die maximale Anzahl der Iterationen", min_value=100, value=300)
                 model = KMeans(n_clusters=n_clusters, init=init, max_iter=max_iter)
                 model.hyperpars_str = f'n_clusters: {n_clusters}, init: {init}, max_iter: {max_iter}'
             elif selected_method == "DBSCAN":
                 from sklearn.cluster import DBSCAN
+                metric = st.selectbox("Wähle die Distanzmetrik", ["euclidean", "manhattan", "cosine"])
                 eps = st.number_input("Wähle den Radius der Nachbarschaft (eps)", min_value=0.1, value=0.5, step=0.1)
-                min_samples = st.number_input("Wähle die minimale Anzahl an Samples in Nachbarschaft", min_value=1, value=5)
-                model = DBSCAN(eps=eps, min_samples=min_samples)
+                st.markdown("**eps**: Der maximale Abstand zwischen zwei Samples, sodass sie derselben Nachbarschaft angehören können. Dies ist jedoch keine maximale Grenze für die Abstände von Punkten innerhalb eines Clusters.")
+                min_samples = st.number_input("Wähle die minimale Anzahl an Samples, die eine Nachbarschaft bilden", min_value=1, value=5)
+                st.markdown("**min_samples**: Die Anzahl der Samples in einer Nachbarschaft für einen Punkt, der als Kernpunkt betrachtet wird. Dies schließt den Punkt selbst ein. Wenn min_samples auf einen höheren Wert gesetzt wird, findet DBSCAN dichtere Cluster, während bei einem niedrigeren Wert die gefundenen Cluster weniger dicht sind.")
+                model = DBSCAN(eps=eps, min_samples=min_samples, metric=metric)
                 model.hyperpars_str = f'eps: {eps}, min_samples: {min_samples}'
                 
             model.method = supported_methods[selected_method]
-            
+            st.session_state['trained_model'] = None
             # Train the  model
             if st.button("Modell trainieren"):
                 model.id = str(uuid.uuid4())  # Generate a unique alphanumeric ID
@@ -156,10 +160,26 @@ if train_file is not None:
                 workbook.save(excel_buffer)
                 excel_buffer.seek(0)
                 # Allow user to download the Excel file
-                st.download_button("Transformierte Daten herunterladen", excel_buffer, 
+                st.download_button("Daten mit Cluster-Zuweisungen herunterladen", excel_buffer, 
                                 file_name=f"Inferenz_{model.date_trained.strftime('%M-%H-%d-%m-%Y')}_{model.id}.xlsx",
                                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                                 )
                 
                 st.subheader('Evaluation')
-            
+                # Calculate evaluation metrics
+                from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+                
+                silhouette_avg = silhouette_score(X, labels)
+                davies_bouldin = davies_bouldin_score(X, labels)
+                calinski_harabasz = calinski_harabasz_score(X, labels)
+                
+                df_metrics = pd.DataFrame([[selected_method, model.hyperpars_str, model.id, silhouette_avg, davies_bouldin, calinski_harabasz]],
+                                                columns=['Methode', 'Hyperparameter', 'Modell-Id', 'Silhouette Score', 'Davies-Bouldin Index', 'Calinski-Harabasz Index'])
+
+                st.dataframe(df_metrics, hide_index=True)
+
+                st.markdown("**Silhouette Score**: Misst, wie ähnlich ein Objekt seinem eigenen Cluster im Vergleich zu anderen Clustern ist. Der Wert reicht von -1 bis 1, wobei ein höherer Wert für besser definierte Cluster steht.  \n\n"
+                            
+                            "**Davies-Bouldin-Index**: Misst das durchschnittliche Ähnlichkeitsverhältnis jedes Clusters mit seinem ähnlichsten Cluster. Ein niedrigerer Wert deutet auf eine bessere Clusterbildung hin.  \n\n"
+
+                            "**Calinski-Harabasz-Index (Variance Ratio Criterion)**: Misst das Verhältnis der Summe der Streuung zwischen Clustern und der Streuung innerhalb von Clustern. Ein höherer Wert deutet auf eine bessere Clusterbildung hin.")
