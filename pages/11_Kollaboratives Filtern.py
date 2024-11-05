@@ -17,24 +17,24 @@ supported_methods = {'Nächste Nachbarn-Heuristik': 'kNN',
 
 st.title("Kollaboratives Filtern")
 
-st.write('''App zur Erstellung eines Empfehlungsdienstes (Recommender System) basierend auf Kollaborativen Filtern-Verfahren.
-         Ratings für User-Item Paare müssen als Trainingsdatensatz zur Verfügung gestellt werden:''')
+st.write('''App zur Erstellung eines Empfehlungsdienstes (Recommender System) basierend auf Kollaborativem Filtern. \\
+         Ratings für User-Item Paare müssen als Trainingsdatensatz zur Verfügung gestellt werden: Eine Zeile pro
+        Rating und drei Spalten in der Reihenfolge <USER_ID>, <ITEM_ID>, <RATING>.
+        Die erste Zeile wird als Spaltenbezeichnungen interpretiert und kein Rating wird ausgelesen.''')
 df_styler = pd.DataFrame({'USER_ID': ['ab$956', 'kl73fv', 'xx98gh'], 'ITEM_ID': [0, 1, 1], 
                           'RATING': [4, 1, 3]}).style.hide()
-st.table(data=df_styler)  
-         
-st.write('''Berechnete Empfehlungen werden auf die Skala [minimum rating, maximum rating] geclippt:''')
+st.dataframe(pd.DataFrame({'USER_ID': ['ab$956', 'kl73fv', 'xx98gh'], 'ITEM_ID': [0, 1, 1], 
+                          'RATING': [4, 1, 3]}), hide_index=True) # data=df_styler  
+
+inp_file = st.file_uploader(label='''Lade eine csv-Datei mit den Ratings hoch:''')
+
+st.write('''Berechnete Empfehlungen werden auf den Bereich [Minimum Rating, Maximum Rating] beschränkt:''')
 col1, col2 = st.columns(2)
 with col1:
     rating_min = st.number_input(label='Minimum Rating', value=1)
 
 with col2:
     rating_max = st.number_input(label='Maximum Rating', value=5)
-
-inp_file = st.file_uploader(label='''Lade eine csv-Datei hoch bestehend aus einer Zeile pro
-                            Rating und drei Spalten in der Reihenfolge <USER_ID>, <ITEM_ID>, <RATING>.
-                            Die erste Zeile wird als Spaltenbezeichnungen interpretiert und kein
-                            Rating wird ausgelesen:''')
 
 data = None
 
@@ -55,7 +55,7 @@ if inp_file:
     data = Dataset.load_from_df(df[["USER_ID", "ITEM_ID", "RATING"]], reader)
 
 model = None
-selected_method = st.selectbox('Wähle den Algorithmus:', ('Nächste Nachbarn-Heuristik','Singulärwertzerlegung (SVD)'))
+selected_method = st.selectbox('Wähle das Verfahren:', ('Nächste Nachbarn-Heuristik','Singulärwertzerlegung (SVD)'))
 
 if selected_method == 'Nächste Nachbarn-Heuristik':
     st.write("Zu wählende Hyperparameter:")
