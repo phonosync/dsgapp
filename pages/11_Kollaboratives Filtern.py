@@ -140,9 +140,9 @@ if model and data:
     predictions = model.test(trainset_full.build_anti_testset())
 
 
-    st.number_input(label='Wähle die Anzahl zu berechnender Empfehlungen pro User:', value=5)
+    n = st.number_input(label='Wähle die Anzahl zu berechnender Empfehlungen pro User:', value=5)
 
-    top_n = s_utils.get_top_n(predictions, n=5)
+    top_n = s_utils.get_top_n(predictions, n=n)
 
     recommendations = []
     for u_id, item_ratings in top_n.items():
