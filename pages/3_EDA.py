@@ -233,9 +233,19 @@ if uploaded_file is not None:
             st.pyplot(fig)
         
         elif variable_type == "Kategorisch":
-
+            total_values = len(df[selected_column])
             num_distinct_classes = df[selected_column].nunique()
-            
+            missing_values = df[selected_column].isna().sum()
+            perc_missing_values = np.round((missing_values / total_values) * 100, 2)
+
+            df_missing_values = pd.DataFrame({
+                "Anzahl": [missing_values],
+                "Anteil (%)": [perc_missing_values]
+            })
+
+            st.write(f'Fehlende Werte in Spalte {selected_column}:')
+            st.dataframe(df_missing_values, hide_index=True)
+
             st.write(f'Anzahl Klassen: {num_distinct_classes}')
 
             # Construct a DataFrame with absolute and relative frequency per class
