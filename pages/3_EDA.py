@@ -28,7 +28,7 @@ st.write("Für tabellarische Daten aus einer csv-Datei")
 # File uploader
 uploaded_file = st.file_uploader("Wähle eine csv-Datei", type="csv")
 
-delimiter = st.text_input('Optional: Gib ein Spalten-Trennzeichen für die csv-Datei an:', None)
+delimiter = st.text_input('Optional: Gib ein Spalten-Trennzeichen für die csv-Datei an', None)
 
 if uploaded_file is not None:
     # Read the CSV file
