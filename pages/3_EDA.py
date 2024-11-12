@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 import utils
 
 @st.cache_data
-def load_data(uploaded_file):
+def load_data(uploaded_file, delimiter):
     return utils.inp_file_2_csv(inp_file=uploaded_file, index_column=False,
-                                  header_row=True)
+                                  header_row=True, delimiter=delimiter)
 
 def detect_variable_type(df):
     variable_types = {}
@@ -28,9 +28,11 @@ st.write("Für tabellarische Daten aus einer csv-Datei")
 # File uploader
 uploaded_file = st.file_uploader("Wähle eine csv-Datei", type="csv")
 
+delimiter = st.text_input('Optional: Gib ein Spalten-Trennzeichen für die csv-Datei an:', None)
+
 if uploaded_file is not None:
     # Read the CSV file
-    df = load_data(uploaded_file)
+    df = load_data(uploaded_file, delimiter)
 
     st.header('Übersicht')
     # Display sample of the first 10 rows
