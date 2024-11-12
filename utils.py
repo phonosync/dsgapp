@@ -17,7 +17,7 @@ def inp_file_2_csv(inp_file, index_column, header_row):
             raise ValueError("The uploaded file is empty.")
 
         # Read a portion of the file content to sniff the dialect
-        sample = file_content[:1024].decode('utf-8')
+        sample = file_content[:256].decode('utf-8')
 
         # Sniff the dialect
         dialect = csv.Sniffer().sniff(sample)
