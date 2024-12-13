@@ -146,7 +146,7 @@ if train_file is not None:
 
                 if test_file is not None:
                     # Read the CSV file
-                    test_df = load_data(train_file)
+                    test_df = load_data(test_file)
                     
                     # Display the DataFrame
                     st.write("Auszug aus den hochgeladenen Testdaten:")
